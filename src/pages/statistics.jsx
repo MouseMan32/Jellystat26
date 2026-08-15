@@ -10,15 +10,57 @@ import PlayStatsByDay from "./components/statistics/play-stats-by-day";
 import PlayStatsByHour from "./components/statistics/play-stats-by-hour";
 import { Trans } from "react-i18next";
 import axios from "../lib/axios_instance.jsx";
-import ActivityTable from "./components/activity/activity-table.jsx";
 import Loading from "./components/general/loading.jsx";
+import { Link } from "react-router-dom";
+
+function formatDuration(seconds) {
+  const totalSeconds = Number(seconds ?? 0);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+
+  return `${minutes}m`;
+}
+
+function formatActivityTime(date) {
+  return Intl.DateTimeFormat(localStorage.getItem("i18nextLng"), {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: JSON.parse(localStorage.getItem("12hr")),
+  }).format(new Date(date));
+}
+
+function getActivityTitle(row) {
+  if (!row?.SeriesName) {
+    return row?.NowPlayingItemName ?? "-";
+  }
+
+  if (row.SeasonNumber != null && row.EpisodeNumber != null) {
+    return `${row.SeriesName} : S${row.SeasonNumber}E${row.EpisodeNumber} - ${row.NowPlayingItemName}`;
+  }
+
+  return `${row.SeriesName} - ${row.NowPlayingItemName}`;
+}
+
+function getPlayMethod(row) {
+  if (row?.PlayMethod === "DirectPlay") {
+    return "Direct";
+  }
+
+  if (row?.PlayMethod === "DirectStream") {
+    return "Direct Stream";
+  }
+
+  return row?.PlayMethod ?? "-";
+}
 
 function SelectedDateActivityModal({ dateKey, onHide }) {
   const [data, setData] = useState();
   const [itemCount, setItemCount] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sorting, setSorting] = useState({ column: "ActivityDateInserted", desc: true });
-  const [tableFilters, setTableFilters] = useState([]);
   const [isBusy, setIsBusy] = useState(false);
   const token = localStorage.getItem("token");
 
@@ -37,20 +79,19 @@ function SelectedDateActivityModal({ dateKey, onHide }) {
   useEffect(() => {
     setCurrentPage(1);
     setData(undefined);
-    setTableFilters([]);
   }, [dateKey]);
 
   useEffect(() => {
     const fetchActivity = () => {
       setIsBusy(true);
       axios
-        .get("/api/getHistory", {
+        .get("/stats/getPlaybackActivity", {
           params: {
             size: itemCount,
             page: currentPage,
-            sort: sorting.column,
-            desc: sorting.desc,
-            filters: JSON.stringify([...dateFilters, ...tableFilters]),
+            sort: "ActivityDateInserted",
+            desc: true,
+            filters: JSON.stringify(dateFilters),
           },
           headers: {
             Authorization: `Bearer ${token}`,
@@ -71,7 +112,7 @@ function SelectedDateActivityModal({ dateKey, onHide }) {
     if (dateKey) {
       fetchActivity();
     }
-  }, [dateKey, itemCount, currentPage, sorting, tableFilters, token, dateFilters]);
+  }, [dateKey, itemCount, currentPage, token, dateFilters]);
 
   return (
     <Modal show={!!dateKey} onHide={onHide} size="xl" dialogClassName="stats-drilldown-modal">
@@ -95,15 +136,44 @@ function SelectedDateActivityModal({ dateKey, onHide }) {
           </div>
         </div>
         {data ? (
-          <ActivityTable
-            data={data.results ?? []}
-            itemCount={itemCount}
-            onPageChange={setCurrentPage}
-            onSortChange={(sort) => setSorting({ column: sort.column, desc: sort.desc })}
-            onFilterChange={setTableFilters}
-            pageCount={data.pages ?? 1}
-            isBusy={isBusy}
-          />
+          <div className="stats-drilldown-list">
+            <div className="stats-drilldown-list-header">
+              <span>Time</span>
+              <span>User</span>
+              <span>Title</span>
+              <span>Client</span>
+              <span>Method</span>
+              <span>Duration</span>
+            </div>
+            {(data.results ?? []).map((row) => (
+              <div className="stats-drilldown-row" key={row.Id}>
+                <span>{formatActivityTime(row.ActivityDateInserted)}</span>
+                <span>{row.UserName}</span>
+                <Link to={`/libraries/item/${row.EpisodeId || row.NowPlayingItemId}`} className="stats-drilldown-title">
+                  {getActivityTitle(row)}
+                </Link>
+                <span>{row.Client ?? "-"}</span>
+                <span>{getPlayMethod(row)}</span>
+                <span>{formatDuration(row.PlaybackDuration)}</span>
+              </div>
+            ))}
+            {(data.results ?? []).length === 0 && <div className="stats-drilldown-empty">No activity found for this date.</div>}
+            <div className="stats-drilldown-pages">
+              <Button variant="outline-secondary" disabled={currentPage <= 1 || isBusy} onClick={() => setCurrentPage(currentPage - 1)}>
+                Previous
+              </Button>
+              <span>
+                Page {currentPage} of {data.pages ?? 1}
+              </span>
+              <Button
+                variant="outline-secondary"
+                disabled={currentPage >= (data.pages ?? 1) || isBusy}
+                onClick={() => setCurrentPage(currentPage + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
         ) : (
           <Loading />
         )}
@@ -118,16 +188,37 @@ function SelectedDateActivityModal({ dateKey, onHide }) {
 }
 
 function Statistics() {
-  const [days, setDays] = useState(
+  const initialDays =
     localStorage.getItem("PREF_STATISTICS_STAT_DAYS_INPUT") != undefined
-      ? localStorage.getItem("PREF_STATISTICS_STAT_DAYS_INPUT")
-      : localStorage.getItem("PREF_STATISTICS_STAT_DAYS") ?? 20
-  );
+      ? Number(localStorage.getItem("PREF_STATISTICS_STAT_DAYS_INPUT"))
+      : Number(localStorage.getItem("PREF_STATISTICS_STAT_DAYS") ?? 20);
+  const [days, setDays] = useState(initialDays);
   const [input, setInput] = useState(localStorage.getItem("PREF_STATISTICS_STAT_DAYS_INPUT") ?? 20);
+  const [endDate, setEndDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const [startDate, setStartDate] = useState(dayjs().subtract(initialDays - 1, "day").format("YYYY-MM-DD"));
 
   const handleOnChange = (event) => {
     setInput(event.target.value);
     localStorage.setItem("PREF_STATISTICS_STAT_DAYS_INPUT", event.target.value);
+  };
+
+  const handleDateRangeChange = (field, value) => {
+    const nextStartDate = field === "start" ? value : startDate;
+    const nextEndDate = field === "end" ? value : endDate;
+
+    if (field === "start") {
+      setStartDate(value);
+    } else {
+      setEndDate(value);
+    }
+
+    if (dayjs(nextStartDate).isValid() && dayjs(nextEndDate).isValid() && !dayjs(nextStartDate).isAfter(dayjs(nextEndDate), "day")) {
+      const nextDays = dayjs(nextEndDate).diff(dayjs(nextStartDate), "day") + 1;
+      setDays(nextDays);
+      setInput(nextDays);
+      localStorage.setItem("PREF_STATISTICS_STAT_DAYS", nextDays);
+      localStorage.setItem("PREF_STATISTICS_STAT_DAYS_INPUT", nextDays);
+    }
   };
 
   const [activeTab, setActiveTab] = useState(localStorage.getItem(`PREF_STATISTICS_LAST_SELECTED_TAB`) ?? "tabCount");
@@ -152,8 +243,11 @@ function Statistics() {
         localStorage.setItem("PREF_STATISTICS_STAT_DAYS", 0);
         localStorage.setItem("PREF_STATISTICS_STAT_DAYS_INPUT", 1);
       } else {
-        setDays(parseInt(input));
-        localStorage.setItem("PREF_STATISTICS_STAT_DAYS", parseInt(input));
+        const nextDays = parseInt(input);
+        setDays(nextDays);
+        setEndDate(dayjs().format("YYYY-MM-DD"));
+        setStartDate(dayjs().subtract(nextDays - 1, "day").format("YYYY-MM-DD"));
+        localStorage.setItem("PREF_STATISTICS_STAT_DAYS", nextDays);
         localStorage.setItem("PREF_STATISTICS_STAT_DAYS_INPUT", input);
       }
 
@@ -197,6 +291,14 @@ function Statistics() {
               <option value="stackedBar">Stacked bar</option>
             </FormSelect>
           </div>
+          <div className="stats-date-control">
+            <label htmlFor="stats-start-date">Start</label>
+            <input id="stats-start-date" type="date" value={startDate} onChange={(event) => handleDateRangeChange("start", event.target.value)} />
+          </div>
+          <div className="stats-date-control">
+            <label htmlFor="stats-end-date">End</label>
+            <input id="stats-end-date" type="date" value={endDate} onChange={(event) => handleDateRangeChange("end", event.target.value)} />
+          </div>
           <div className="date-range">
             <div className="header">
               <Trans i18nKey={"LAST"} />
@@ -213,20 +315,20 @@ function Statistics() {
 
       {activeTab === "tabCount" && (
         <div>
-          <DailyPlayStats days={days} viewName="count" chartType={chartType} onDateSelect={setSelectedDateKey} />
+          <DailyPlayStats days={days} startDate={startDate} endDate={endDate} viewName="count" chartType={chartType} onDateSelect={setSelectedDateKey} />
           <div className="statistics-graphs">
-            <PlayStatsByDay days={days} viewName="count" chartType={chartType} />
-            <PlayStatsByHour days={days} viewName="count" chartType={chartType} />
+            <PlayStatsByDay days={days} startDate={startDate} endDate={endDate} viewName="count" chartType={chartType} />
+            <PlayStatsByHour days={days} startDate={startDate} endDate={endDate} viewName="count" chartType={chartType} />
           </div>
         </div>
       )}
 
       {activeTab === "tabDuration" && (
         <div>
-          <DailyPlayStats days={days} viewName="duration" chartType={chartType} onDateSelect={setSelectedDateKey} />
+          <DailyPlayStats days={days} startDate={startDate} endDate={endDate} viewName="duration" chartType={chartType} onDateSelect={setSelectedDateKey} />
           <div className="statistics-graphs">
-            <PlayStatsByDay days={days} viewName="duration" chartType={chartType} />
-            <PlayStatsByHour days={days} viewName="duration" chartType={chartType} />
+            <PlayStatsByDay days={days} startDate={startDate} endDate={endDate} viewName="duration" chartType={chartType} />
+            <PlayStatsByHour days={days} startDate={startDate} endDate={endDate} viewName="duration" chartType={chartType} />
           </div>
         </div>
       )}

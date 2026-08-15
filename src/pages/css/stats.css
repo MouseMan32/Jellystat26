@@ -119,7 +119,17 @@
   overflow: hidden;
 }
 
+.stats-date-control {
+  display: flex;
+  height: 42px;
+  color: white;
+  background-color: var(--secondary-background-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
 .stats-control label,
+.stats-date-control label,
 .stats-drilldown-toolbar span {
   display: flex;
   align-items: center;
@@ -139,6 +149,16 @@
 
 .stats-control select:focus {
   box-shadow: none;
+}
+
+.stats-date-control input {
+  height: 42px;
+  padding: 0 10px;
+  color: white;
+  color-scheme: dark;
+  background-color: transparent;
+  border: 0;
+  outline: 0;
 }
 
 .interactive-chart {
@@ -180,6 +200,62 @@
   color: white;
 }
 
+.stats-drilldown-list {
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: var(--tertiary-background-color);
+}
+
+.stats-drilldown-list-header,
+.stats-drilldown-row {
+  display: grid;
+  grid-template-columns: minmax(72px, 0.5fr) minmax(120px, 0.9fr) minmax(260px, 2.2fr) minmax(112px, 0.8fr) minmax(110px, 0.8fr) minmax(84px, 0.6fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.stats-drilldown-list-header {
+  min-height: 44px;
+  padding: 0 12px;
+  color: rgba(255, 255, 255, 0.72);
+  background-color: rgba(255, 255, 255, 0.08);
+  font-weight: 700;
+}
+
+.stats-drilldown-row {
+  min-height: 54px;
+  padding: 8px 12px;
+  color: white;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.stats-drilldown-row > span,
+.stats-drilldown-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stats-drilldown-title {
+  color: var(--secondary-color);
+  text-decoration: none;
+  white-space: normal;
+}
+
+.stats-drilldown-empty {
+  padding: 24px;
+  color: rgba(255, 255, 255, 0.65);
+  text-align: center;
+}
+
+.stats-drilldown-pages {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px;
+}
+
 .nav-item {
   display: flex;
   justify-content: center;
@@ -210,6 +286,7 @@
 
   .stats-tab-nav,
   .stats-control,
+  .stats-date-control,
   .date-range {
     width: 100%;
   }
@@ -221,5 +298,15 @@
   .stats-drilldown-toolbar {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .stats-drilldown-list-header {
+    display: none;
+  }
+
+  .stats-drilldown-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    align-items: start;
   }
 }

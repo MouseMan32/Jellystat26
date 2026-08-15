@@ -15,7 +15,12 @@ function PlayStatsByDay(props) {
 
   useEffect(() => {
     const fetchLibraries = () => {
-      const url = `/stats/getViewsByDays?days=${props.days}`;
+      const params = new URLSearchParams({ days: props.days });
+      if (props.startDate && props.endDate) {
+        params.set("startDate", props.startDate);
+        params.set("endDate", props.endDate);
+      }
+      const url = `/stats/getViewsByDays?${params.toString()}`;
 
       axios
         .get(
@@ -36,18 +41,13 @@ function PlayStatsByDay(props) {
         });
     };
 
-    if (!stats) {
-      fetchLibraries();
-    }
-    if (days !== props.days) {
-      setDays(props.days);
-      fetchLibraries();
-    }
+    setDays(props.days);
+    fetchLibraries();
     const intervalId = setInterval(fetchLibraries, 60000 * 5);
     return () => clearInterval(intervalId);
-  }, [stats, days, props.days, token]);
+  }, [props.days, props.startDate, props.endDate, token]);
 
-  if (!stats) {
+  if (!stats || !libraries) {
     return <></>;
   }
 

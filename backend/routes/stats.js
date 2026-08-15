@@ -578,14 +578,80 @@ router.post("/getLibraryLastPlayed", async (req, res) => {
   }
 });
 
+function getStatsDateRange(query) {
+  const days = Math.max(parseInt(query.days ?? 30), 1);
+  const endDate = query.endDate && dayjs(query.endDate).isValid() ? dayjs(query.endDate) : dayjs();
+  const startDate =
+    query.startDate && dayjs(query.startDate).isValid()
+      ? dayjs(query.startDate)
+      : endDate.subtract(days - 1, "day");
+
+  if (startDate.isAfter(endDate, "day")) {
+    return { error: "Start date cannot be after end date" };
+  }
+
+  return {
+    startDate: startDate.format("YYYY-MM-DD"),
+    endDate: endDate.format("YYYY-MM-DD"),
+  };
+}
+
+function formatDateKey(date) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+  }).format(new Date(date));
+}
+
 router.get("/getViewsOverTime", async (req, res) => {
   try {
-    const { days } = req.query;
-    let _days = days;
-    if (days === undefined) {
-      _days = 30;
+    const range = getStatsDateRange(req.query);
+    if (range.error) {
+      return res.status(400).send(range.error);
     }
-    const { rows: stats } = await db.query(`select * from fs_watch_stats_over_time($1)`, [_days]);
+    const { startDate, endDate } = range;
+
+    const { rows: stats } = await db.query(
+      `
+      WITH selected_libraries AS (
+        SELECT DISTINCT "Id", "Name"
+        FROM jf_libraries
+        WHERE archived=false
+      ),
+      dates AS (
+        SELECT generate_series($1::date, $2::date, '1 day')::date AS "Date"
+      ),
+      counts AS (
+        SELECT
+          DATE_TRUNC('day', a."ActivityDateInserted")::date AS "Date",
+          COUNT(*) AS "Count",
+          (SUM(a."PlaybackDuration") / 60)::bigint AS "Duration",
+          l."Id" AS "LibraryID",
+          l."Name" AS "Library"
+        FROM jf_playback_activity a
+        JOIN jf_library_items i ON i."Id" = a."NowPlayingItemId"
+        JOIN jf_libraries l ON i."ParentId" = l."Id" AND l.archived=false
+        WHERE a."ActivityDateInserted" >= $1::date
+          AND a."ActivityDateInserted" < ($2::date + INTERVAL '1 day')
+        GROUP BY l."Id", l."Name", DATE_TRUNC('day', a."ActivityDateInserted")
+      )
+      SELECT
+        dates."Date",
+        COALESCE(counts."Count", 0) AS "Count",
+        COALESCE(counts."Duration", 0) AS "Duration",
+        selected_libraries."Name" AS "Library",
+        selected_libraries."Id" AS "LibraryID"
+      FROM dates
+      CROSS JOIN selected_libraries
+      LEFT JOIN counts
+        ON counts."Date" = dates."Date"
+       AND counts."LibraryID" = selected_libraries."Id"
+      ORDER BY dates."Date", selected_libraries."Name";
+      `,
+      [startDate, endDate]
+    );
 
     const { rows: libraries } = await db.query(`select distinct "Id","Name" from jf_libraries where archived=false`);
 
@@ -595,11 +661,7 @@ router.get("/getViewsOverTime", async (req, res) => {
       const library = item.Library;
       const count = item.Count;
       const duration = item.Duration;
-      const date = new Date(item.Date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-      });
+      const date = formatDateKey(item.Date);
 
       if (!reorganizedData[date]) {
         reorganizedData[date] = {
@@ -620,12 +682,55 @@ router.get("/getViewsOverTime", async (req, res) => {
 
 router.get("/getViewsByDays", async (req, res) => {
   try {
-    const { days } = req.query;
-    let _days = days;
-    if (days === undefined) {
-      _days = 30;
+    const range = getStatsDateRange(req.query);
+    if (range.error) {
+      return res.status(400).send(range.error);
     }
-    const { rows: stats } = await db.query(`select * from fs_watch_stats_popular_days_of_week($1)`, [_days]);
+    const { startDate, endDate } = range;
+
+    const { rows: stats } = await db.query(
+      `
+      WITH selected_libraries AS (
+        SELECT DISTINCT "Id", "Name"
+        FROM jf_libraries
+        WHERE archived=false
+      ),
+      days AS (
+        SELECT 0 AS "DOW", 'Sunday' AS "Day" UNION ALL
+        SELECT 1 AS "DOW", 'Monday' AS "Day" UNION ALL
+        SELECT 2 AS "DOW", 'Tuesday' AS "Day" UNION ALL
+        SELECT 3 AS "DOW", 'Wednesday' AS "Day" UNION ALL
+        SELECT 4 AS "DOW", 'Thursday' AS "Day" UNION ALL
+        SELECT 5 AS "DOW", 'Friday' AS "Day" UNION ALL
+        SELECT 6 AS "DOW", 'Saturday' AS "Day"
+      ),
+      counts AS (
+        SELECT
+          EXTRACT(DOW FROM a."ActivityDateInserted")::integer AS "DOW",
+          COUNT(*) AS "Count",
+          (SUM(a."PlaybackDuration") / 60)::bigint AS "Duration",
+          l."Id" AS "LibraryID"
+        FROM jf_playback_activity a
+        JOIN jf_library_items i ON i."Id" = a."NowPlayingItemId"
+        JOIN jf_libraries l ON i."ParentId" = l."Id" AND l.archived=false
+        WHERE a."ActivityDateInserted" >= $1::date
+          AND a."ActivityDateInserted" < ($2::date + INTERVAL '1 day')
+        GROUP BY l."Id", EXTRACT(DOW FROM a."ActivityDateInserted")
+      )
+      SELECT
+        days."Day",
+        COALESCE(counts."Count", 0) AS "Count",
+        COALESCE(counts."Duration", 0) AS "Duration",
+        selected_libraries."Name" AS "Library"
+      FROM days
+      CROSS JOIN selected_libraries
+      LEFT JOIN counts
+        ON counts."DOW" = days."DOW"
+       AND counts."LibraryID" = selected_libraries."Id"
+      ORDER BY days."DOW", selected_libraries."Name";
+      `,
+      [startDate, endDate]
+    );
 
     const { rows: libraries } = await db.query(`select distinct "Id","Name" from jf_libraries where archived=false`);
 
@@ -656,12 +761,49 @@ router.get("/getViewsByDays", async (req, res) => {
 
 router.get("/getViewsByHour", async (req, res) => {
   try {
-    const { days } = req.query;
-    let _days = days;
-    if (days === undefined) {
-      _days = 30;
+    const range = getStatsDateRange(req.query);
+    if (range.error) {
+      return res.status(400).send(range.error);
     }
-    const { rows: stats } = await db.query(`select * from fs_watch_stats_popular_hour_of_day($1)`, [_days]);
+    const { startDate, endDate } = range;
+
+    const { rows: stats } = await db.query(
+      `
+      WITH selected_libraries AS (
+        SELECT DISTINCT "Id", "Name"
+        FROM jf_libraries
+        WHERE archived=false
+      ),
+      hours AS (
+        SELECT generate_series(0, 23) AS "Hour"
+      ),
+      counts AS (
+        SELECT
+          DATE_PART('hour', a."ActivityDateInserted")::integer AS "Hour",
+          COUNT(*)::integer AS "Count",
+          COALESCE(SUM(a."PlaybackDuration") / 60, 0)::integer AS "Duration",
+          l."Id" AS "LibraryID"
+        FROM jf_playback_activity a
+        JOIN jf_library_items i ON i."Id" = a."NowPlayingItemId"
+        JOIN jf_libraries l ON i."ParentId" = l."Id" AND l.archived=false
+        WHERE a."ActivityDateInserted" >= $1::date
+          AND a."ActivityDateInserted" < ($2::date + INTERVAL '1 day')
+        GROUP BY l."Id", DATE_PART('hour', a."ActivityDateInserted")
+      )
+      SELECT
+        hours."Hour",
+        COALESCE(counts."Count", 0) AS "Count",
+        COALESCE(counts."Duration", 0) AS "Duration",
+        selected_libraries."Name" AS "Library"
+      FROM hours
+      CROSS JOIN selected_libraries
+      LEFT JOIN counts
+        ON counts."Hour" = hours."Hour"
+       AND counts."LibraryID" = selected_libraries."Id"
+      ORDER BY selected_libraries."Name", hours."Hour";
+      `,
+      [startDate, endDate]
+    );
 
     const { rows: libraries } = await db.query(`select distinct "Id","Name" from jf_libraries where archived=false`);
 
