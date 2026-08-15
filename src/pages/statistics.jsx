@@ -163,7 +163,7 @@ function Statistics() {
 
   return (
     <div className="watch-stats">
-      <SelectedDateActivityModal dateKey={selectedDateKey} onHide={() => setSelectedDateKey(null)} />
+      {selectedDateKey && <SelectedDateActivityModal dateKey={selectedDateKey} onHide={() => setSelectedDateKey(null)} />}
       <div className="Heading">
         <h1>
           <Trans i18nKey={"STAT_PAGE.STATISTICS"} />

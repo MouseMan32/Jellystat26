@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, Legend, BarChart, Bar } from "recharts";
 
-function Chart({ stats, libraries, viewName, chartType = "area", onKeySelect }) {
+function Chart({ stats = [], libraries = [], viewName, chartType = "area", onKeySelect }) {
   const colors = [
     "rgb(54, 162, 235)", // blue
     "rgb(255, 99, 132)", // pink
@@ -25,7 +25,10 @@ function Chart({ stats, libraries, viewName, chartType = "area", onKeySelect }) 
     "rgb(147, 112, 219)", // medium purple
   ];
 
-  const flattenedStats = stats.map((item) => {
+  const safeStats = Array.isArray(stats) ? stats : [];
+  const safeLibraries = Array.isArray(libraries) ? libraries : [];
+
+  const flattenedStats = safeStats.map((item) => {
     const flatItem = { Key: item.Key };
     for (const [libraryName, data] of Object.entries(item)) {
       if (libraryName === "Key") continue;
@@ -39,7 +42,7 @@ function Chart({ stats, libraries, viewName, chartType = "area", onKeySelect }) 
       return (
         <div style={{ backgroundColor: "rgba(0,0,0,0.8)", color: "white" }} className="p-2 rounded-2 border-0">
           <p className="text-center fs-5">{label}</p>
-          {libraries.map((library, index) => (
+          {safeLibraries.map((library, index) => (
             // <p key={library.Id} style={{ color: `${colors[index]}` }}>{`${library.Name} : ${payload[index].value} Views`}</p>
             <p key={library.Id} style={{ color: `${colors[index]}` }}>
               {`${library.Name} : ${payload?.find((p) => p.dataKey === library.Name)?.value ?? 0} ${
@@ -58,7 +61,7 @@ function Chart({ stats, libraries, viewName, chartType = "area", onKeySelect }) 
   const getMaxValue = () => {
     let max = 0;
     flattenedStats.forEach((datum) => {
-      libraries.forEach((library) => {
+      safeLibraries.forEach((library) => {
         const value = parseFloat(datum[library.Name]);
         if (!isNaN(value)) {
           max = Math.max(max, value);
@@ -84,7 +87,7 @@ function Chart({ stats, libraries, viewName, chartType = "area", onKeySelect }) 
       {chartType === "area" ? (
         <AreaChart {...commonProps}>
           <defs>
-            {libraries.map((library, index) => (
+            {safeLibraries.map((library, index) => (
               <linearGradient key={library.Id} id={library.Id} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={colors[index]} stopOpacity={0.8} />
                 <stop offset="95%" stopColor={colors[index]} stopOpacity={0} />
@@ -95,7 +98,7 @@ function Chart({ stats, libraries, viewName, chartType = "area", onKeySelect }) 
           <YAxis domain={[0, max]} />
           <Tooltip content={<CustomTooltip />} />
           <Legend verticalAlign="bottom" />
-          {libraries.map((library, index) => (
+          {safeLibraries.map((library, index) => (
             <Area
               key={library.Id}
               type="monotone"
@@ -112,7 +115,7 @@ function Chart({ stats, libraries, viewName, chartType = "area", onKeySelect }) 
           <YAxis domain={[0, max]} />
           <Tooltip content={<CustomTooltip />} />
           <Legend verticalAlign="bottom" />
-          {libraries.map((library, index) => (
+          {safeLibraries.map((library, index) => (
             <Bar
               key={library.Id}
               dataKey={library.Name}
@@ -128,3 +131,4 @@ function Chart({ stats, libraries, viewName, chartType = "area", onKeySelect }) 
 }
 
 export default Chart;
+
