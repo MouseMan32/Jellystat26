@@ -57,7 +57,7 @@ const filterFields = [
   },
   { field: "Client", column: `LOWER(a."Client")` },
   { field: "DeviceName", column: `LOWER(a."DeviceName")` },
-  { field: "ActivityDateInserted", column: "a.ActivityDateInserted", isColumn: true },
+  { field: "ActivityDateInserted", column: "a.ActivityDateInserted", isColumn: true, applyToCTE: true },
   { field: "PlaybackDuration", column: `a.PlaybackDuration`, isColumn: true, applyToCTE: true },
   { field: "TotalPlays", column: `COALESCE("TotalPlays",1)` },
   { field: "PlayMethod", column: `LOWER(a."PlayMethod")` },

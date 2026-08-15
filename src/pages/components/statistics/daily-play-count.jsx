@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import axios from "../../../lib/axios_instance";
 import Chart from "./chart";
@@ -5,12 +6,58 @@ import Chart from "./chart";
 import "../../css/stats.css";
 import { Trans } from "react-i18next";
 
+function formatMinutes(minutes) {
+  if (!minutes) {
+    return "0m";
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours === 0) {
+    return `${remainingMinutes}m`;
+  }
+
+  return `${hours}h ${remainingMinutes}m`;
+}
+
+function getSummaryCards(stats, libraries) {
+  const summary = stats.reduce(
+    (accumulator, day) => {
+      libraries.forEach((library) => {
+        const libraryStats = day[library.Name] ?? {};
+        const count = Number(libraryStats.count ?? 0);
+        const duration = Number(libraryStats.duration ?? 0);
+
+        accumulator.totalViews += count;
+        accumulator.totalDuration += duration;
+        accumulator.byLibrary[library.Name] = (accumulator.byLibrary[library.Name] ?? 0) + count;
+      });
+
+      return accumulator;
+    },
+    { totalViews: 0, totalDuration: 0, byLibrary: {} }
+  );
+
+  const topLibrary = Object.entries(summary.byLibrary).sort((a, b) => b[1] - a[1])[0];
+  const activeDays = stats.filter((day) =>
+    libraries.some((library) => Number(day[library.Name]?.count ?? 0) > 0 || Number(day[library.Name]?.duration ?? 0) > 0)
+  ).length;
+
+  return [
+    { label: "Total plays", value: summary.totalViews.toLocaleString() },
+    { label: "Watch time", value: formatMinutes(summary.totalDuration) },
+    { label: "Active days", value: activeDays.toLocaleString() },
+    { label: "Top library", value: topLibrary?.[0] ?? "-" },
+  ];
+}
+
 function DailyPlayStats(props) {
 
   const [stats, setStats] = useState();
   const [libraries, setLibraries] = useState();
   const [days, setDays] = useState(20);
-  const [viewName, setViewName] = useState("count");
+  const viewName = props.viewName;
   const token = localStorage.getItem("token");
   
 
@@ -46,13 +93,9 @@ function DailyPlayStats(props) {
       setDays(props.days);
       fetchLibraries();
     }
-    if (props.viewName !== viewName) {
-      setViewName(props.viewName);
-    }
-
     const intervalId = setInterval(fetchLibraries, 60000 * 5);
     return () => clearInterval(intervalId);
-  }, [stats,libraries, days, props.days, props.viewName, token]);
+  }, [stats, days, props.days, token]);
 
   if (!stats) {
     return <></>;
@@ -69,12 +112,32 @@ function DailyPlayStats(props) {
       </div>
     );
   }
+  const summaryCards = getSummaryCards(stats, libraries ?? []);
+
   return (
     <div className="main-widget">
-      <h2 className="text-start my-2"><Trans i18nKey={titleKey}/> - <Trans i18nKey={"LAST"}/> {days} <Trans i18nKey={`UNITS.DAY${days>1 ? 'S':''}`}/></h2>
+      <div className="stats-section-heading">
+        <h2 className="text-start my-2"><Trans i18nKey={titleKey}/> - <Trans i18nKey={"LAST"}/> {days} <Trans i18nKey={`UNITS.DAY${days>1 ? 'S':''}`}/></h2>
+        {props.onDateSelect && <span>Click a date to inspect watch activity</span>}
+      </div>
+
+      <div className="stats-summary-grid">
+        {summaryCards.map((card) => (
+          <div className="stats-summary-card" key={card.label}>
+            <span>{card.label}</span>
+            <strong>{card.value}</strong>
+          </div>
+        ))}
+      </div>
 
       <div className="graph">
-         <Chart libraries={libraries} stats={stats} viewName={viewName}/>
+         <Chart
+          libraries={libraries}
+          stats={stats}
+          viewName={viewName}
+          chartType={props.chartType}
+          onKeySelect={props.onDateSelect}
+        />
       </div>
     </div>
   );

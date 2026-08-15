@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import axios from "../../../lib/axios_instance";
 import Chart from "./chart";
@@ -9,7 +10,7 @@ function PlayStatsByDay(props) {
   const [stats, setStats] = useState();
   const [libraries, setLibraries] = useState();
   const [days, setDays] = useState(20);
-  const [viewName, setViewName] = useState("count");
+  const viewName = props.viewName;
   const token = localStorage.getItem("token");
 
   useEffect(() => {
@@ -42,13 +43,9 @@ function PlayStatsByDay(props) {
       setDays(props.days);
       fetchLibraries();
     }
-    if (props.viewName !== viewName) {
-      setViewName(props.viewName);
-    }
-
     const intervalId = setInterval(fetchLibraries, 60000 * 5);
     return () => clearInterval(intervalId);
-  }, [stats, libraries, days, props.days, props.viewName, token]);
+  }, [stats, days, props.days, token]);
 
   if (!stats) {
     return <></>;
@@ -70,7 +67,7 @@ function PlayStatsByDay(props) {
     <div className="statistics-widget">
       <h2 className="text-start my-2"><Trans i18nKey={titleKey}/> <Trans i18nKey={"UNITS.DAY"}/>  - <Trans i18nKey={"LAST"}/> {days} <Trans i18nKey={`UNITS.DAY${days>1 ? 'S':''}`}/></h2>
       <div className="graph small">
-        <Chart libraries={libraries} stats={stats} viewName={viewName}/>
+        <Chart libraries={libraries} stats={stats} viewName={viewName} chartType={props.chartType}/>
       </div>
     </div>
   );

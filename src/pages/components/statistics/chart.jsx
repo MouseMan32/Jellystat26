@@ -1,6 +1,7 @@
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, Legend } from "recharts";
+/* eslint-disable react/prop-types */
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, Legend, BarChart, Bar } from "recharts";
 
-function Chart({ stats, libraries, viewName }) {
+function Chart({ stats, libraries, viewName, chartType = "area", onKeySelect }) {
   const colors = [
     "rgb(54, 162, 235)", // blue
     "rgb(255, 99, 132)", // pink
@@ -24,7 +25,7 @@ function Chart({ stats, libraries, viewName }) {
     "rgb(147, 112, 219)", // medium purple
   ];
 
-  const flattenedStats = stats.map(item => {
+  const flattenedStats = stats.map((item) => {
     const flatItem = { Key: item.Key };
     for (const [libraryName, data] of Object.entries(item)) {
       if (libraryName === "Key") continue;
@@ -41,9 +42,12 @@ function Chart({ stats, libraries, viewName }) {
           {libraries.map((library, index) => (
             // <p key={library.Id} style={{ color: `${colors[index]}` }}>{`${library.Name} : ${payload[index].value} Views`}</p>
             <p key={library.Id} style={{ color: `${colors[index]}` }}>
-              {`${library.Name} : ${payload?.find(p => p.dataKey === library.Name).value} ${viewName === "count" ? "Views" : "Minutes"}`}
+              {`${library.Name} : ${payload?.find((p) => p.dataKey === library.Name)?.value ?? 0} ${
+                viewName === "count" ? "Views" : "Minutes"
+              }`}
             </p>
           ))}
+          {onKeySelect && <p className="chart-tooltip-hint">Click to inspect this date</p>}
         </div>
       );
     }
@@ -53,8 +57,8 @@ function Chart({ stats, libraries, viewName }) {
 
   const getMaxValue = () => {
     let max = 0;
-    flattenedStats.forEach(datum => {
-      libraries.forEach(library => {
+    flattenedStats.forEach((datum) => {
+      libraries.forEach((library) => {
         const value = parseFloat(datum[library.Name]);
         if (!isNaN(value)) {
           max = Math.max(max, value);
@@ -65,33 +69,60 @@ function Chart({ stats, libraries, viewName }) {
   };
 
   const max = getMaxValue() + 10;
+  const commonProps = {
+    data: flattenedStats,
+    margin: { top: 10, right: 30, left: 0, bottom: 0 },
+    onClick: (data) => {
+      if (onKeySelect && data?.activeLabel) {
+        onKeySelect(data.activeLabel);
+      }
+    },
+  };
 
   return (
-    <ResponsiveContainer width="100%">
-      <AreaChart data={flattenedStats} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-        <defs>
+    <ResponsiveContainer width="100%" className={onKeySelect ? "interactive-chart" : undefined}>
+      {chartType === "area" ? (
+        <AreaChart {...commonProps}>
+          <defs>
+            {libraries.map((library, index) => (
+              <linearGradient key={library.Id} id={library.Id} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={colors[index]} stopOpacity={0.8} />
+                <stop offset="95%" stopColor={colors[index]} stopOpacity={0} />
+              </linearGradient>
+            ))}
+          </defs>
+          <XAxis dataKey="Key" interval={0} angle={-60} textAnchor="end" height={100} />
+          <YAxis domain={[0, max]} />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend verticalAlign="bottom" />
           {libraries.map((library, index) => (
-            <linearGradient key={library.Id} id={library.Id} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={colors[index]} stopOpacity={0.8} />
-              <stop offset="95%" stopColor={colors[index]} stopOpacity={0} />
-            </linearGradient>
+            <Area
+              key={library.Id}
+              type="monotone"
+              dataKey={library.Name}
+              stroke={colors[index]}
+              fillOpacity={1}
+              fill={"url(#" + library.Id + ")"}
+            />
           ))}
-        </defs>
-        <XAxis dataKey="Key" interval={0} angle={-60} textAnchor="end" height={100} />
-        <YAxis domain={[0, max]} />
-        <Tooltip content={<CustomTooltip />} />
-        <Legend verticalAlign="bottom" />
-        {libraries.map((library, index) => (
-          <Area
-            key={library.Id}
-            type="monotone"
-            dataKey={library.Name}
-            stroke={colors[index]}
-            fillOpacity={1}
-            fill={"url(#" + library.Id + ")"}
-          />
-        ))}
-      </AreaChart>
+        </AreaChart>
+      ) : (
+        <BarChart {...commonProps}>
+          <XAxis dataKey="Key" interval={0} angle={-60} textAnchor="end" height={100} />
+          <YAxis domain={[0, max]} />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend verticalAlign="bottom" />
+          {libraries.map((library, index) => (
+            <Bar
+              key={library.Id}
+              dataKey={library.Name}
+              fill={colors[index]}
+              stackId={chartType === "stackedBar" ? "stats" : undefined}
+              radius={chartType === "stackedBar" ? [4, 4, 0, 0] : [4, 4, 0, 0]}
+            />
+          ))}
+        </BarChart>
+      )}
     </ResponsiveContainer>
   );
 }
