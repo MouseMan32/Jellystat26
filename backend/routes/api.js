@@ -1043,6 +1043,180 @@ router.post("/getUserDeviceStats", async (req, res) => {
   }
 });
 
+router.post("/getUserOverviewDashboard", async (req, res) => {
+  try {
+    const { userid, days = 30 } = req.body;
+
+    if (userid === undefined) {
+      res.status(400);
+      res.send("No User ID provided");
+      return;
+    }
+
+    const safeDays = Math.min(Math.max(parseInt(days, 10) || 30, 1), 3650);
+    const values = [userid, safeDays];
+    const currentWindow = `"ActivityDateInserted" >= NOW() - MAKE_INTERVAL(days => $2::int)`;
+    const previousWindow = `"ActivityDateInserted" < NOW() - MAKE_INTERVAL(days => $2::int)
+      AND "ActivityDateInserted" >= NOW() - MAKE_INTERVAL(days => ($2::int * 2))`;
+
+    const { rows: summaryRows } = await db.query(
+      `
+      WITH current_activity AS (
+        SELECT *
+        FROM jf_playback_activity
+        WHERE "UserId" = $1
+          AND ${currentWindow}
+      ),
+      previous_activity AS (
+        SELECT *
+        FROM jf_playback_activity
+        WHERE "UserId" = $1
+          AND ${previousWindow}
+      )
+      SELECT
+        COALESCE((SELECT COUNT(*) FROM current_activity), 0)::bigint AS "PlayCount",
+        COALESCE((SELECT SUM("PlaybackDuration") FROM current_activity), 0)::bigint AS "TotalPlaybackDuration",
+        COALESCE((SELECT COUNT(*) FROM current_activity WHERE "EpisodeId" IS NOT NULL), 0)::bigint AS "EpisodeCount",
+        COALESCE((SELECT COUNT(*) FROM current_activity WHERE "SeriesName" IS NULL), 0)::bigint AS "MovieCount",
+        COALESCE((SELECT COUNT(*) FROM previous_activity), 0)::bigint AS "PreviousPlayCount",
+        COALESCE((SELECT SUM("PlaybackDuration") FROM previous_activity), 0)::bigint AS "PreviousPlaybackDuration",
+        COALESCE((SELECT COUNT(*) FROM previous_activity WHERE "EpisodeId" IS NOT NULL), 0)::bigint AS "PreviousEpisodeCount",
+        COALESCE((SELECT COUNT(*) FROM previous_activity WHERE "SeriesName" IS NULL), 0)::bigint AS "PreviousMovieCount";
+      `,
+      values
+    );
+
+    const { rows: topGenreRows } = await db.query(
+      `
+      SELECT
+        COALESCE(g.genre, 'No Genre') AS "Name",
+        SUM(a."PlaybackDuration")::bigint AS "TotalPlaybackDuration",
+        COUNT(*)::bigint AS "PlayCount"
+      FROM jf_playback_activity_with_metadata a
+      JOIN jf_library_items i ON i."Id" = a."NowPlayingItemId"
+      LEFT JOIN LATERAL (
+        SELECT jsonb_array_elements_text(
+          CASE
+            WHEN jsonb_array_length(COALESCE(i."Genres", '[]'::jsonb)) = 0 THEN '["No Genre"]'::jsonb
+            ELSE i."Genres"
+          END
+        ) AS genre
+      ) g ON true
+      WHERE a."UserId" = $1
+        AND a."ActivityDateInserted" >= NOW() - MAKE_INTERVAL(days => $2::int)
+      GROUP BY COALESCE(g.genre, 'No Genre')
+      ORDER BY SUM(a."PlaybackDuration") DESC
+      LIMIT 1;
+      `,
+      values
+    );
+
+    const { rows: topShows } = await db.query(
+      `
+      SELECT
+        a."SeriesName" AS "Title",
+        MIN(a."NowPlayingItemId") AS "ItemId",
+        COUNT(DISTINCT a."EpisodeId")::bigint AS "EpisodeCount",
+        COUNT(*)::bigint AS "PlayCount",
+        SUM(a."PlaybackDuration")::bigint AS "TotalPlaybackDuration",
+        MAX(a."ActivityDateInserted") AS "LastWatched"
+      FROM jf_playback_activity_with_metadata a
+      WHERE a."UserId" = $1
+        AND a."ActivityDateInserted" >= NOW() - MAKE_INTERVAL(days => $2::int)
+        AND a."SeriesName" IS NOT NULL
+      GROUP BY a."SeriesName"
+      ORDER BY SUM(a."PlaybackDuration") DESC, COUNT(DISTINCT a."EpisodeId") DESC
+      LIMIT 5;
+      `,
+      values
+    );
+
+    const { rows: topMovies } = await db.query(
+      `
+      SELECT
+        a."NowPlayingItemName" AS "Title",
+        MIN(a."NowPlayingItemId") AS "ItemId",
+        COUNT(*)::bigint AS "PlayCount",
+        SUM(a."PlaybackDuration")::bigint AS "TotalPlaybackDuration",
+        MAX(a."ActivityDateInserted") AS "LastWatched"
+      FROM jf_playback_activity_with_metadata a
+      WHERE a."UserId" = $1
+        AND a."ActivityDateInserted" >= NOW() - MAKE_INTERVAL(days => $2::int)
+        AND a."SeriesName" IS NULL
+      GROUP BY a."NowPlayingItemName"
+      ORDER BY SUM(a."PlaybackDuration") DESC, COUNT(*) DESC
+      LIMIT 5;
+      `,
+      values
+    );
+
+    const { rows: topDevices } = await db.query(
+      `
+      SELECT
+        COALESCE(NULLIF("Client", ''), 'Unknown client') AS "Client",
+        COALESCE(NULLIF("DeviceName", ''), 'Unknown device') AS "DeviceName",
+        COUNT(*)::bigint AS "PlayCount",
+        SUM("PlaybackDuration")::bigint AS "TotalPlaybackDuration"
+      FROM jf_playback_activity
+      WHERE "UserId" = $1
+        AND "ActivityDateInserted" >= NOW() - MAKE_INTERVAL(days => $2::int)
+      GROUP BY
+        COALESCE(NULLIF("Client", ''), 'Unknown client'),
+        COALESCE(NULLIF("DeviceName", ''), 'Unknown device')
+      ORDER BY SUM("PlaybackDuration") DESC, COUNT(*) DESC
+      LIMIT 5;
+      `,
+      values
+    );
+
+    const { rows: recentActivity } = await db.query(
+      `
+      SELECT
+        a."Id",
+        a."NowPlayingItemId" AS "ItemId",
+        a."EpisodeId",
+        CASE
+          WHEN a."SeriesName" IS NULL THEN a."NowPlayingItemName"
+          ELSE CONCAT(
+            a."SeriesName",
+            CASE WHEN a."SeasonNumber" IS NOT NULL AND a."EpisodeNumber" IS NOT NULL
+              THEN CONCAT(' - S', a."SeasonNumber", 'E', a."EpisodeNumber")
+              ELSE ''
+            END,
+            ' - ',
+            a."NowPlayingItemName"
+          )
+        END AS "Title",
+        CASE WHEN a."SeriesName" IS NULL THEN 'Movie' ELSE 'Episode' END AS "Type",
+        COALESCE(NULLIF(a."Client", ''), 'Unknown client') AS "Client",
+        COALESCE(NULLIF(a."DeviceName", ''), 'Unknown device') AS "DeviceName",
+        a."ActivityDateInserted",
+        a."PlaybackDuration"
+      FROM jf_playback_activity_with_metadata a
+      WHERE a."UserId" = $1
+        AND a."ActivityDateInserted" >= NOW() - MAKE_INTERVAL(days => $2::int)
+      ORDER BY a."ActivityDateInserted" DESC
+      LIMIT 5;
+      `,
+      values
+    );
+
+    res.send({
+      days: safeDays,
+      summary: summaryRows[0] ?? {},
+      topGenre: topGenreRows[0] ?? null,
+      topShows,
+      topMovies,
+      topDevices,
+      recentActivity,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(503);
+    res.send(error);
+  }
+});
+
 router.get("/getLibraries", async (req, res) => {
   try {
     const { rows } = await db.query(`SELECT * FROM jf_libraries`);

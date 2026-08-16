@@ -5,16 +5,12 @@ import AccountCircleFillIcon from "remixicon-react/AccountCircleFillIcon";
 import Config from "../../lib/config";
 import { Tabs, Tab, Button, ButtonGroup } from "react-bootstrap";
 
-import LastPlayed from "./user-info/lastplayed";
 import UserActivity from "./user-info/user-activity";
 import "../css/users/user-details.css";
 import { Trans } from "react-i18next";
 import baseUrl from "../../lib/baseurl";
-import GlobalStats from "./general/globalStats";
 import ActivityTimeline from "../activity_time_line";
-import GenreUserStats from "./user-info/genre-user-stats.jsx";
-import UserFavorites from "./user-info/user-favorites.jsx";
-import UserDeviceStats from "./user-info/user-device-stats.jsx";
+import UserOverviewDashboard from "./user-info/user-overview-dashboard.jsx";
 
 function UserInfo() {
   const { UserId } = useParams();
@@ -126,30 +122,7 @@ function UserInfo() {
 
       <Tabs defaultActiveKey="tabOverview" activeKey={activeTab} variant="pills">
         <Tab eventKey="tabOverview" className="bg-transparent">
-          <div className="user-overview-dashboard">
-            <section className="user-overview-section user-overview-section-wide user-overview-stats">
-              <GlobalStats
-                id={UserId}
-                param={"userid"}
-                endpoint={"getGlobalUserStats"}
-                title={<Trans i18nKey="USERS_PAGE.USER_STATS" />}
-              />
-            </section>
-            <div className="user-overview-grid">
-              <section className="user-overview-section">
-                <UserFavorites UserId={UserId} />
-              </section>
-              <section className="user-overview-section">
-                <UserDeviceStats UserId={UserId} />
-              </section>
-              <section className="user-overview-section user-overview-section-wide">
-                <GenreUserStats UserId={UserId} />
-              </section>
-              <section className="user-overview-section user-overview-section-wide">
-                <LastPlayed UserId={UserId} />
-              </section>
-            </div>
-          </div>
+          <UserOverviewDashboard UserId={UserId} user={data} />
         </Tab>
         <Tab eventKey="tabActivity" className="bg-transparent">
           <UserActivity UserId={UserId} />

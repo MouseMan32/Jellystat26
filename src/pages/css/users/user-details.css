@@ -9,8 +9,8 @@
   background:
     linear-gradient(135deg, rgba(0, 164, 220, 0.16), rgba(90, 45, 165, 0.1)),
     var(--secondary-background-color);
-  padding: 22px;
-  margin: 20px 0 18px;
+  padding: 10px 12px;
+  margin: 12px 0;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 18px 48px rgba(0, 0, 0, 0.2);
@@ -25,20 +25,20 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 18px;
+  gap: 12px;
 }
 
 .user-title-block {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 8px;
+  gap: 3px;
 }
 
 .user-name {
   overflow-wrap: anywhere;
   color: white;
-  font-size: 2.2rem;
+  font-size: 1.15rem;
   font-weight: 650;
   line-height: 1.05;
   margin: 0;
@@ -47,16 +47,15 @@
 .user-page-label,
 .user-id-chip {
   color: rgba(255, 255, 255, 0.62);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   letter-spacing: 0;
   text-transform: uppercase;
 }
 
 .user-id-chip {
-  width: fit-content;
-  max-width: min(520px, 100%);
+  max-width: min(360px, 100%);
   overflow: hidden;
-  padding: 4px 8px;
+  padding: 2px 7px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.18);
@@ -66,8 +65,8 @@
 }
 
 .user-image {
-  width: 112px;
-  height: 112px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid rgba(255, 255, 255, 0.12);
@@ -76,8 +75,8 @@
 
 .user-image-container {
   flex: 0 0 auto;
-  width: 112px;
-  height: 112px;
+  width: 44px;
+  height: 44px;
   color: rgba(255, 255, 255, 0.52);
 }
 
@@ -160,7 +159,7 @@
 
 @media (max-width: 576px) {
   .user-detail-container {
-    padding: 16px;
+    padding: 10px;
   }
 
   .user-profile-cluster {
@@ -169,11 +168,11 @@
 
   .user-image,
   .user-image-container {
-    width: 78px;
-    height: 78px;
+    width: 40px;
+    height: 40px;
   }
 
   .user-name {
-    font-size: 1.55rem;
+    font-size: 1rem;
   }
 }
