@@ -21,8 +21,8 @@
 .timeline-page-header {
   display: flex;
   align-items: flex-end;
-  gap: 16px;
-  padding: 12px;
+  gap: 10px;
+  padding: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   background:
@@ -33,7 +33,7 @@
 .timeline-title-block {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .timeline-title-block span {
@@ -45,7 +45,7 @@
 .timeline-title-block h1 {
   margin: 0;
   color: white;
-  font-size: 1.55rem;
+  font-size: 1.25rem;
   font-weight: 650;
   line-height: 1.1;
 }
@@ -53,7 +53,7 @@
 .timeline-filter-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   justify-content: flex-end;
 }
 
@@ -107,7 +107,7 @@
 .timeline-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   margin-left: 0;
 }
 
@@ -123,6 +123,8 @@
   border: 0;
   border-radius: 0;
   color: rgba(255, 255, 255, 0.78);
+  padding: 5px 9px;
+  font-size: 0.82rem;
 }
 
 .timeline-control-group .btn.active {
@@ -133,18 +135,18 @@
 .timeline-grouped {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin: 12px 0 20px;
+  gap: 8px;
+  margin: 8px 0 14px;
 }
 
 .timeline-grouped-summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-  gap: 8px;
+  gap: 6px;
 }
 
 .timeline-grouped-summary > div {
-  padding: 10px 12px;
+  padding: 7px 9px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   background:
@@ -156,7 +158,7 @@
 .timeline-group-kicker {
   display: block;
   color: rgba(255, 255, 255, 0.58);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
 }
 
@@ -164,12 +166,12 @@
   display: block;
   margin-top: 4px;
   color: white;
-  font-size: 1.18rem;
+  font-size: 1rem;
   line-height: 1.05;
 }
 
 .timeline-group {
-  padding: 12px;
+  padding: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   background:
@@ -182,48 +184,48 @@
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 7px;
 }
 
 .timeline-group-header h2 {
   margin: 4px 0 0;
   color: white;
-  font-size: 1.08rem;
+  font-size: 0.98rem;
   font-weight: 650;
 }
 
 .timeline-grouped-card-stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 7px;
   color: rgba(255, 255, 255, 0.62);
 }
 
 .timeline-group-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 7px;
   justify-content: flex-end;
 }
 
 .timeline-group-metrics {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 5px;
 }
 
 .timeline-group-metrics span {
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.07);
   color: rgba(255, 255, 255, 0.68);
-  font-size: 0.82rem;
+  font-size: 0.74rem;
 }
 
 .timeline-group-toggle {
-  min-height: 30px;
-  padding: 4px 9px;
+  min-height: 26px;
+  padding: 3px 8px;
   border: 1px solid rgba(0, 164, 220, 0.35);
   border-radius: 8px;
   background: rgba(0, 164, 220, 0.12);
@@ -237,15 +239,15 @@
 .timeline-group-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
-  gap: 8px;
+  gap: 6px;
 }
 
 .timeline-grouped-card {
   display: grid;
-  grid-template-columns: 48px 1fr;
-  gap: 10px;
-  min-height: 74px;
-  padding: 8px;
+  grid-template-columns: 40px 1fr;
+  gap: 8px;
+  min-height: 60px;
+  padding: 6px;
   color: white;
   text-decoration: none;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -261,8 +263,8 @@
 }
 
 .timeline-grouped-poster {
-  width: 48px;
-  height: 62px;
+  width: 40px;
+  height: 52px;
   object-fit: cover;
   border-radius: 6px;
   background-color: var(--background-color);
@@ -280,12 +282,12 @@
   min-width: 0;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .timeline-grouped-card-type {
   color: var(--secondary-color);
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -293,7 +295,7 @@
 .timeline-grouped-card-body strong {
   overflow: hidden;
   color: white;
-  font-size: 0.86rem;
+  font-size: 0.8rem;
   line-height: 1.2;
   text-overflow: ellipsis;
 }
@@ -303,7 +305,7 @@
   color: rgba(255, 255, 255, 0.62);
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
 .timeline-grouped-density {
