@@ -13,6 +13,7 @@ import baseUrl from "../../lib/baseurl";
 import GlobalStats from "./general/globalStats";
 import ActivityTimeline from "../activity_time_line";
 import GenreUserStats from "./user-info/genre-user-stats.jsx";
+import UserFavorites from "./user-info/user-favorites.jsx";
 
 function UserInfo() {
   const { UserId } = useParams();
@@ -125,6 +126,7 @@ function UserInfo() {
             endpoint={"getGlobalUserStats"}
             title={<Trans i18nKey="USERS_PAGE.USER_STATS" />}
           />
+          <UserFavorites UserId={UserId} />
           <GenreUserStats UserId={UserId} />
           <LastPlayed UserId={UserId} />
         </Tab>

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types, react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import { Trans } from "react-i18next";
 import ActivityTimelineComponent from "./components/activity-timeline/activity-timeline";
@@ -20,6 +21,8 @@ function ActivityTimeline(props) {
   const [libraries, setLibraries] = useState();
   const [config, setConfig] = useState(null);
   const [showLibraryFilters, setShowLibraryFilters] = useState(false);
+  const [timelineView, setTimelineView] = useState(localStorage.getItem("PREF_ACTIVITY_TIMELINE_view") ?? "grouped");
+  const [timelineZoom, setTimelineZoom] = useState(localStorage.getItem("PREF_ACTIVITY_TIMELINE_zoom") ?? "month");
   const [selectedLibraries, setSelectedLibraries] = useState(
     localStorage.getItem("PREF_ACTIVITY_TIMELINE_selectedLibraries") !=
       undefined
@@ -42,6 +45,16 @@ function ActivityTimeline(props) {
   const handleUserSelection = (selectedUser) => {
     setSelectedUser(selectedUser);
     localStorage.setItem("PREF_ACTIVITY_TIMELINE_selectedUser", selectedUser);
+  };
+
+  const handleViewChange = (view) => {
+    setTimelineView(view);
+    localStorage.setItem("PREF_ACTIVITY_TIMELINE_view", view);
+  };
+
+  const handleZoomChange = (zoom) => {
+    setTimelineZoom(zoom);
+    localStorage.setItem("PREF_ACTIVITY_TIMELINE_zoom", zoom);
   };
 
   const toggleSelectAll = () => {
@@ -192,6 +205,27 @@ function ActivityTimeline(props) {
               </Modal.Footer>
             </Modal>
           </div>
+          <div className="timeline-controls">
+            <div className="timeline-control-group">
+              <Button variant="outline-primary" active={timelineView === "grouped"} onClick={() => handleViewChange("grouped")}>
+                Grouped
+              </Button>
+              <Button variant="outline-primary" active={timelineView === "detail"} onClick={() => handleViewChange("detail")}>
+                Detail
+              </Button>
+            </div>
+            <div className="timeline-control-group">
+              <Button variant="outline-primary" active={timelineZoom === "day"} onClick={() => handleZoomChange("day")}>
+                Day
+              </Button>
+              <Button variant="outline-primary" active={timelineZoom === "month"} onClick={() => handleZoomChange("month")}>
+                Month
+              </Button>
+              <Button variant="outline-primary" active={timelineZoom === "year"} onClick={() => handleZoomChange("year")}>
+                Year
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
       <div>
@@ -199,6 +233,8 @@ function ActivityTimeline(props) {
           <ActivityTimelineComponent
             userId={selectedUser}
             libraries={selectedLibraries}
+            view={timelineView}
+            zoom={timelineZoom}
           />
         )}
       </div>

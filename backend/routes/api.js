@@ -935,6 +935,63 @@ router.post("/getUserDetails", async (req, res) => {
   }
 });
 
+router.post("/getUserFavorites", async (req, res) => {
+  try {
+    const { userid, limit = 8 } = req.body;
+
+    if (userid === undefined) {
+      res.status(400);
+      res.send("No User ID provided");
+      return;
+    }
+
+    const { rows } = await db.query(
+      `
+      WITH favorite_activity AS (
+        SELECT
+          COALESCE(a."SeriesName", a."NowPlayingItemName") AS "Title",
+          CASE WHEN a."SeriesName" IS NULL THEN 'movies' ELSE 'tvshows' END AS "MediaType",
+          MIN(COALESCE(a."SeasonId", a."NowPlayingItemId")) AS "ItemId",
+          COUNT(*)::bigint AS "PlayCount",
+          COUNT(DISTINCT a."EpisodeId") FILTER (WHERE a."EpisodeId" IS NOT NULL)::bigint AS "EpisodeCount",
+          SUM(a."PlaybackDuration")::bigint AS "TotalPlaybackDuration",
+          MAX(a."ActivityDateInserted") AS "LastWatched"
+        FROM jf_playback_activity_with_metadata a
+        WHERE a."UserId" = $1
+        GROUP BY
+          COALESCE(a."SeriesName", a."NowPlayingItemName"),
+          CASE WHEN a."SeriesName" IS NULL THEN 'movies' ELSE 'tvshows' END
+      )
+      SELECT *
+      FROM (
+        SELECT *
+        FROM favorite_activity
+        WHERE "MediaType" = 'tvshows'
+        ORDER BY "EpisodeCount" DESC, "PlayCount" DESC, "TotalPlaybackDuration" DESC
+        LIMIT $2
+      ) shows
+      UNION ALL
+      SELECT *
+      FROM (
+        SELECT *
+        FROM favorite_activity
+        WHERE "MediaType" = 'movies'
+        ORDER BY "PlayCount" DESC, "TotalPlaybackDuration" DESC
+        LIMIT $2
+      ) movies
+      ORDER BY "MediaType" DESC, "EpisodeCount" DESC, "PlayCount" DESC;
+      `,
+      [userid, limit]
+    );
+
+    res.send(rows);
+  } catch (error) {
+    console.log(error);
+    res.status(503);
+    res.send(error);
+  }
+});
+
 router.get("/getLibraries", async (req, res) => {
   try {
     const { rows } = await db.query(`SELECT * FROM jf_libraries`);

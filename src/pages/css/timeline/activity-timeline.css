@@ -54,3 +54,133 @@
 .MuiTimelineContent-root {
   align-self: center;
 }
+
+.timeline-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-left: 1rem;
+}
+
+.timeline-control-group {
+  display: flex;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.timeline-control-group .btn {
+  border-radius: 0;
+}
+
+.timeline-grouped {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 18px 0 28px;
+}
+
+.timeline-group {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background-color: var(--secondary-background-color);
+}
+
+.timeline-group-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.timeline-group-header h2 {
+  margin: 0;
+  color: white;
+  font-size: 1.35rem;
+}
+
+.timeline-group-header div,
+.timeline-grouped-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.timeline-group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.timeline-grouped-card {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  min-height: 106px;
+  padding: 10px;
+  color: white;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background-color: var(--tertiary-background-color);
+}
+
+.timeline-grouped-card:hover {
+  color: white;
+  border-color: rgba(0, 164, 220, 0.45);
+}
+
+.timeline-grouped-poster {
+  width: 72px;
+  height: 88px;
+  object-fit: cover;
+  border-radius: 6px;
+  background-color: var(--background-color);
+}
+
+.timeline-grouped-poster-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.timeline-grouped-card-body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 7px;
+}
+
+.timeline-grouped-card-body strong {
+  overflow: hidden;
+  color: white;
+  font-size: 1rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+}
+
+.timeline-grouped-card-body > span {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.62);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 576px) {
+  .timeline-controls {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .timeline-control-group {
+    width: 100%;
+  }
+
+  .timeline-control-group .btn {
+    flex: 1;
+  }
+}
