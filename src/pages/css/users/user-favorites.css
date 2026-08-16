@@ -4,7 +4,13 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01)),
+    var(--secondary-background-color);
+  margin-bottom: 0;
 }
 
 .user-favorites-heading h2,
@@ -14,41 +20,45 @@
 }
 
 .user-favorites-heading h2 {
-  font-size: 1.7rem;
+  font-size: 1.35rem;
+  font-weight: 650;
 }
 
 .user-favorites h3 {
-  font-size: 1.1rem;
+  font-size: 0.88rem;
   color: rgba(255, 255, 255, 0.72);
+  text-transform: uppercase;
 }
 
 .favorite-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 12px;
 }
 
 .favorite-card {
   display: grid;
-  grid-template-columns: 78px 1fr;
-  gap: 12px;
-  min-height: 116px;
-  padding: 10px;
+  grid-template-columns: 72px 1fr;
+  gap: 14px;
+  min-height: 118px;
+  padding: 12px;
   color: white;
   text-decoration: none;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  background-color: var(--secondary-background-color);
+  background-color: rgba(30, 28, 34, 0.72);
+  transition: border-color 0.18s ease, transform 0.18s ease;
 }
 
 .favorite-card:hover {
   color: white;
   border-color: rgba(0, 164, 220, 0.45);
+  transform: translateY(-1px);
 }
 
 .favorite-poster {
-  width: 78px;
-  height: 96px;
+  width: 72px;
+  height: 94px;
   object-fit: cover;
   border-radius: 6px;
   background-color: var(--tertiary-background-color);
@@ -66,7 +76,7 @@
   min-width: 0;
   flex-direction: column;
   justify-content: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .favorite-card-body strong {
@@ -83,8 +93,35 @@
   font-size: 0.82rem;
 }
 
+.favorite-rank {
+  color: var(--secondary-color);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
 .favorite-card-stats {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.favorite-score-bar {
+  overflow: hidden;
+  width: 100%;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.favorite-score-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--secondary-color), rgba(255, 186, 73, 0.9));
+}
+
+@media (max-width: 576px) {
+  .favorite-grid {
+    grid-template-columns: 1fr;
+  }
 }

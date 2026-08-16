@@ -139,13 +139,16 @@ function ActivityTimeline(props) {
   }, [config]);
 
   return timelineReady ? (
-    <div className="watch-stats">
-      <div className="Heading">
-        <h1>
-          <Trans i18nKey={"TIMELINE_PAGE.TIMELINE"} />
-        </h1>
+    <div className="watch-stats timeline-page">
+      <div className="Heading timeline-page-header">
+        <div className="timeline-title-block">
+          <span>Activity history</span>
+          <h1>
+            <Trans i18nKey={"TIMELINE_PAGE.TIMELINE"} />
+          </h1>
+        </div>
         <div
-          className="d-flex flex-column flex-sm-row"
+          className="timeline-filter-row"
           style={{ whiteSpace: "nowrap" }}
         >
           <div className="user-selection">

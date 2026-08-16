@@ -28,9 +28,11 @@ function FavoriteFallback({ mediaType }) {
   );
 }
 
-function FavoriteCard({ item }) {
+function FavoriteCard({ item, rank, maxValue }) {
   const [imageFailed, setImageFailed] = useState(false);
   const isShow = item.MediaType === "tvshows";
+  const score = Number(isShow ? item.EpisodeCount : item.PlayCount) || 0;
+  const width = `${Math.max((score / Math.max(maxValue, 1)) * 100, 8)}%`;
 
   return (
     <Link to={`/libraries/item/${item.ItemId}`} className="favorite-card">
@@ -45,12 +47,15 @@ function FavoriteCard({ item }) {
         <FavoriteFallback mediaType={item.MediaType} />
       )}
       <div className="favorite-card-body">
-        <span className="favorite-rank">{isShow ? "Favorite show" : "Favorite movie"}</span>
+        <span className="favorite-rank">#{rank} {isShow ? "show" : "movie"}</span>
         <strong>{item.Title}</strong>
         <div className="favorite-card-stats">
           {isShow && <span>{item.EpisodeCount} episodes</span>}
           <span>{item.PlayCount} plays</span>
           <span>{formatDuration(item.TotalPlaybackDuration)}</span>
+        </div>
+        <div className="favorite-score-bar" aria-hidden="true">
+          <span style={{ width }} />
         </div>
       </div>
     </Link>
@@ -90,6 +95,8 @@ export default function UserFavorites({ UserId }) {
 
   const shows = favorites.filter((item) => item.MediaType === "tvshows");
   const movies = favorites.filter((item) => item.MediaType === "movies");
+  const maxShowEpisodes = Math.max(...shows.map((item) => Number(item.EpisodeCount ?? 0)), 1);
+  const maxMoviePlays = Math.max(...movies.map((item) => Number(item.PlayCount ?? 0)), 1);
 
   return (
     <div className="user-favorites">
@@ -100,8 +107,8 @@ export default function UserFavorites({ UserId }) {
         <section>
           <h3>TV Shows</h3>
           <div className="favorite-grid">
-            {shows.map((item) => (
-              <FavoriteCard key={`show-${item.Title}`} item={item} />
+            {shows.map((item, index) => (
+              <FavoriteCard key={`show-${item.Title}`} item={item} rank={index + 1} maxValue={maxShowEpisodes} />
             ))}
           </div>
         </section>
@@ -110,8 +117,8 @@ export default function UserFavorites({ UserId }) {
         <section>
           <h3>Movies</h3>
           <div className="favorite-grid">
-            {movies.map((item) => (
-              <FavoriteCard key={`movie-${item.Title}`} item={item} />
+            {movies.map((item, index) => (
+              <FavoriteCard key={`movie-${item.Title}`} item={item} rank={index + 1} maxValue={maxMoviePlays} />
             ))}
           </div>
         </section>

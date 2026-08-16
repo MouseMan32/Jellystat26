@@ -1,0 +1,105 @@
+@import "../variables.css";
+
+.user-device-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01)),
+    var(--secondary-background-color);
+}
+
+.user-device-stats-heading h2 {
+  margin: 0;
+  color: white;
+  font-size: 1.35rem;
+  font-weight: 650;
+}
+
+.user-device-stats-grid,
+.user-device-ranking,
+.user-device-ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-device-ranking-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--secondary-color);
+}
+
+.user-device-ranking-heading h3 {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.user-device-ranking-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  background-color: rgba(30, 28, 34, 0.72);
+}
+
+.user-device-ranking-meta {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.user-device-ranking-index {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(0, 164, 220, 0.14);
+  color: var(--secondary-color);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.user-device-ranking-meta strong,
+.user-device-ranking-meta span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-device-ranking-meta strong {
+  color: white;
+  font-size: 0.95rem;
+}
+
+.user-device-ranking-meta span {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.82rem;
+}
+
+.user-device-ranking-bar {
+  overflow: hidden;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.user-device-ranking-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--secondary-color), rgba(126, 95, 255, 0.85));
+}

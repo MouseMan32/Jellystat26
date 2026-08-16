@@ -48,3 +48,30 @@
 .genre-container::-webkit-scrollbar-thumb:hover {
   background-color: #88888883; /* set thumb color */
 }
+
+.user-overview-section .genre-container {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01)),
+    var(--secondary-background-color);
+  margin-bottom: 0;
+}
+
+.user-overview-section .genre-stats {
+  min-width: 0;
+}
+
+.user-overview-section .genre-stats h1 {
+  font-size: 1rem;
+}
+
+@media (max-width: 992px) {
+  .user-overview-section .genre-container .row {
+    flex-direction: column;
+  }
+
+  .genre-stats {
+    width: 100%;
+  }
+}

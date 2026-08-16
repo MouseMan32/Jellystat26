@@ -116,3 +116,19 @@
   margin-bottom: 5px;
   color: var(--secondary-color);
 }
+
+.user-overview-section .last-played-container {
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01)),
+    var(--secondary-background-color);
+  margin-bottom: 0;
+}
+
+.user-overview-section .last-card {
+  flex: 0 0 150px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background-color: rgba(30, 28, 34, 0.72);
+}

@@ -1,31 +1,179 @@
 @import "../variables.css";
 
+.user-modern-page {
+  color: white;
+}
+
 .user-detail-container {
   color: white;
-  background-color: var(--secondary-background-color);
-  padding: 20px;
-  margin: 20px 0;
+  background:
+    linear-gradient(135deg, rgba(0, 164, 220, 0.16), rgba(90, 45, 165, 0.1)),
+    var(--secondary-background-color);
+  padding: 22px;
+  margin: 20px 0 18px;
   border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.2);
 
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.user-profile-cluster {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 18px;
+}
+
+.user-title-block {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .user-name {
-  font-size: 2.5em;
-  font-weight: 500;
+  overflow-wrap: anywhere;
+  color: white;
+  font-size: 2.2rem;
+  font-weight: 650;
+  line-height: 1.05;
   margin: 0;
 }
+
+.user-page-label,
+.user-id-chip {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.user-id-chip {
+  width: fit-content;
+  max-width: min(520px, 100%);
+  overflow: hidden;
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.18);
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
 .user-image {
-  width: 100px;
-  height: 100px;
+  width: 112px;
+  height: 112px;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 0 10px 5px var(--secondary-background-color);
+  border: 3px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
 }
 
 .user-image-container {
-  width: 100px;
-  height: 100px;
-  margin-right: 20px;
+  flex: 0 0 auto;
+  width: 112px;
+  height: 112px;
+  color: rgba(255, 255, 255, 0.52);
+}
+
+.user-tab-controls {
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.user-tab-controls .btn {
+  border: 0;
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.user-tab-controls .btn.active {
+  color: white;
+  background-color: rgba(0, 164, 220, 0.24);
+}
+
+.user-overview-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.user-overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(320px, 0.8fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.user-overview-section {
+  min-width: 0;
+}
+
+.user-overview-section-wide {
+  grid-column: 1 / -1;
+}
+
+.user-overview-section h1,
+.user-overview-section h2,
+.user-overview-section h3,
+.user-overview-stats h1 {
+  letter-spacing: 0;
+}
+
+.user-overview-section h1,
+.user-overview-stats h1 {
+  font-size: 1.35rem;
+  font-weight: 650;
+}
+
+.user-overview-section .last-played > h1,
+.user-overview-section .genre > h1 {
+  margin: 0 0 12px !important;
+}
+
+@media (max-width: 992px) {
+  .user-detail-container {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .user-tab-controls {
+    width: 100%;
+  }
+
+  .user-tab-controls .btn {
+    flex: 1;
+  }
+
+  .user-overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .user-detail-container {
+    padding: 16px;
+  }
+
+  .user-profile-cluster {
+    align-items: flex-start;
+  }
+
+  .user-image,
+  .user-image-container {
+    width: 78px;
+    height: 78px;
+  }
+
+  .user-name {
+    font-size: 1.55rem;
+  }
 }

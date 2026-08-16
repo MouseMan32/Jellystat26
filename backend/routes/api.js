@@ -992,6 +992,57 @@ router.post("/getUserFavorites", async (req, res) => {
   }
 });
 
+router.post("/getUserDeviceStats", async (req, res) => {
+  try {
+    const { userid, limit = 5 } = req.body;
+
+    if (userid === undefined) {
+      res.status(400);
+      res.send("No User ID provided");
+      return;
+    }
+
+    const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 5, 1), 10);
+    const { rows: clients } = await db.query(
+      `
+      SELECT
+        COALESCE(NULLIF("Client", ''), 'Unknown client') AS "Name",
+        COUNT(*)::bigint AS "PlayCount",
+        SUM("PlaybackDuration")::bigint AS "TotalPlaybackDuration",
+        MAX("ActivityDateInserted") AS "LastWatched"
+      FROM jf_playback_activity
+      WHERE "UserId" = $1
+      GROUP BY COALESCE(NULLIF("Client", ''), 'Unknown client')
+      ORDER BY "PlayCount" DESC, "TotalPlaybackDuration" DESC
+      LIMIT $2;
+      `,
+      [userid, safeLimit]
+    );
+
+    const { rows: devices } = await db.query(
+      `
+      SELECT
+        COALESCE(NULLIF("DeviceName", ''), 'Unknown device') AS "Name",
+        COUNT(*)::bigint AS "PlayCount",
+        SUM("PlaybackDuration")::bigint AS "TotalPlaybackDuration",
+        MAX("ActivityDateInserted") AS "LastWatched"
+      FROM jf_playback_activity
+      WHERE "UserId" = $1
+      GROUP BY COALESCE(NULLIF("DeviceName", ''), 'Unknown device')
+      ORDER BY "PlayCount" DESC, "TotalPlaybackDuration" DESC
+      LIMIT $2;
+      `,
+      [userid, safeLimit]
+    );
+
+    res.send({ clients, devices });
+  } catch (error) {
+    console.log(error);
+    res.status(503);
+    res.send(error);
+  }
+});
+
 router.get("/getLibraries", async (req, res) => {
   try {
     const { rows } = await db.query(`SELECT * FROM jf_libraries`);
