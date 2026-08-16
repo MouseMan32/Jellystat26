@@ -13,6 +13,14 @@
   color: white;
 }
 
+.user-dashboard-hero,
+.user-dashboard-panel,
+.user-dashboard-recent-panel {
+  min-height: 0;
+  justify-content: initial;
+  align-items: initial;
+}
+
 .user-dashboard-topbar,
 .user-dashboard-hero,
 .user-dashboard-panel,
@@ -208,6 +216,8 @@
 }
 
 .user-dashboard-panel {
+  display: block;
+  width: auto;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;

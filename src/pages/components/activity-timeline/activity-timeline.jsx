@@ -196,7 +196,7 @@ function GroupedTimeline({ entries, zoom }) {
         </div>
       </div>
       {groups.map((group) => (
-        <section className="timeline-group" key={group.key}>
+        <div className="timeline-group" key={group.key}>
           <div className="timeline-group-header">
             <div>
               <span className="timeline-group-kicker">{zoom} view</span>
@@ -224,7 +224,7 @@ function GroupedTimeline({ entries, zoom }) {
               ))}
             </div>
           )}
-        </section>
+        </div>
       ))}
     </div>
   );
